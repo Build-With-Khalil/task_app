@@ -15,16 +15,17 @@ class LoginView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /// Get the height and width of the screen
     var height = MediaQuery.sizeOf(context).height;
     var width = MediaQuery.sizeOf(context).width;
 
-    // Create the formKey locally in the LoginView
+    /// Create the formKey locally in the LoginView
     final formKey = GlobalKey<FormState>();
 
     return Scaffold(
       body: Stack(
         children: [
-          // Background Gradient
+          /// Background Gradient
           Container(
             height: height,
             width: width,
@@ -52,7 +53,7 @@ class LoginView extends StatelessWidget {
             ),
           ),
 
-          // Login Form
+          /// Login Form
           Positioned(
             top: height * 0.25,
             child: Container(
@@ -175,7 +176,7 @@ class LoginView extends StatelessWidget {
     return InkWell(
       onTap: () {
         if (formKey.currentState!.validate()) {
-          loginProvider.login();
+          loginProvider.login(context);
         }
       },
       child: Container(
@@ -193,12 +194,17 @@ class LoginView extends StatelessWidget {
           ),
         ),
         child: Center(
-          child: Text(
-            AppStrings.signInC,
-            style: Theme.of(context).textTheme.headlineMedium!.apply(
+          child: loginProvider.isLoading
+              ? const CircularProgressIndicator(
                   color: AppColors.whiteColor,
+                  strokeWidth: 2.0,
+                )
+              : Text(
+                  AppStrings.signInC,
+                  style: Theme.of(context).textTheme.headlineMedium!.apply(
+                        color: AppColors.whiteColor,
+                      ),
                 ),
-          ),
         ),
       ),
     );

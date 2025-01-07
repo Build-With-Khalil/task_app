@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:task_app/controller/auth/login_controller.dart';
+import 'package:task_app/controller/chat/voice_chat_controller.dart';
 import 'package:task_app/utils/route/app_pages.dart';
 import 'package:task_app/utils/route/routes_name.dart';
-
-import 'utils/styles/text_style.dart';
+import 'package:task_app/utils/styles/text_style.dart';
 
 void main() {
   runApp(
@@ -20,21 +20,18 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (context) => LoginProvider()..checkAuthStatus(),
+          create: (context) => LoginProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (context) => VoiceAssistantProvider(),
+        )
       ],
-      child: Consumer<LoginProvider>(
-        builder: (context, loginProvider, child) {
-          return MaterialApp(
-            title: "Chat Bot",
-            theme: TextStyles().textTheme,
-            debugShowCheckedModeBanner: false,
-            initialRoute: loginProvider.isAuthenticated
-                ? RoutesName.chat
-                : RoutesName.splash,
-            routes: AppPages.getRoutes(),
-          );
-        },
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Chat Bot',
+        theme: TextStyles().textTheme,
+        initialRoute: RoutesName.splash,
+        routes: AppPages.getRoutes(),
       ),
     );
   }

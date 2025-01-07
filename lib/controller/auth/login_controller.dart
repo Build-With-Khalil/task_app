@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/services/dio/dio_services.dart';
+import '../../utils/route/app_navigator.dart';
+import '../../utils/route/routes_name.dart';
 
 class LoginProvider with ChangeNotifier {
-  /// Removed the formKey here
+  /// Variables for password visibility, login status, and loading state
   bool isObscure = true;
+  bool _isAuthenticated = false;
+  bool _isLoading = false;
 
   /// Controllers for login inputs
   final emailController = TextEditingController();
@@ -14,11 +19,12 @@ class LoginProvider with ChangeNotifier {
   /// Tokens
   String? _accessToken;
   String? _refreshToken;
-  bool _isAuthenticated = false;
 
-  /// Getter for access token
+  /// Getter for login status and loading state
   bool get isAuthenticated => _isAuthenticated;
+  bool get isLoading => _isLoading;
 
+  /// Dio Object
   final DioService dioService = DioService();
 
   /// Toggle password visibility
@@ -27,10 +33,18 @@ class LoginProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Toggle loading state
+  void setLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
+
   /// Login function
-  Future<void> login() async {
+  Future<void> login(BuildContext context) async {
     const String loginUrl =
         "https://stagingapi.calling-all-kids.com/api/user/auth/login";
+
+    setLoading(true); // Start loading
 
     try {
       /// API call for login
@@ -38,7 +52,6 @@ class LoginProvider with ChangeNotifier {
         "email": emailController.text.trim(),
         "password": passwordController.text.trim(),
       });
-
       if (response.statusCode == 200 && response.data['error'] == false) {
         final data = response.data['data'];
 
@@ -50,14 +63,49 @@ class LoginProvider with ChangeNotifier {
         final preferences = await SharedPreferences.getInstance();
         await preferences.setString('accessToken', _accessToken!);
         await preferences.setString('refreshToken', _refreshToken!);
-
+        print(preferences.setString('accessToken', _accessToken!));
         _isAuthenticated = true;
         notifyListeners();
+
+        /// Navigate to ChatView
+        AppNavigator.pushNamed(context, RoutesName.chat);
+
+        /// Clear input fields
+        emailController.clear();
+        passwordController.clear();
+
+        /// Show success message
+        Fluttertoast.showToast(
+          msg: response.data['message'] ?? "Login successful",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.teal,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       } else {
-        throw Exception(response.data['message'] ?? "Login failed");
+        /// Show error message
+        Fluttertoast.showToast(
+          msg: response.data['message'] ?? "Login failed",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     } catch (e) {
-      throw Exception("Login request failed: $e");
+      /// Show error message
+      Fluttertoast.showToast(
+        msg: "Login request failed: $e",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    } finally {
+      setLoading(false); // Stop loading
     }
   }
 
@@ -72,17 +120,26 @@ class LoginProvider with ChangeNotifier {
   }
 
   /// Logout function
-  Future<void> logout() async {
-    // Clear tokens and local data
-    _accessToken = null;
-    _refreshToken = null;
-    _isAuthenticated = false;
+  Future<void> logout(BuildContext context) async {
+    setLoading(false); // Start loading
+    try {
+      /// Clear tokens and local data
+      _accessToken = null;
+      _refreshToken = null;
+      _isAuthenticated = false;
 
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.remove('accessToken');
-    await preferences.remove('refreshToken');
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.remove('accessToken');
+      await preferences.remove('refreshToken');
 
-    notifyListeners();
+      notifyListeners();
+
+      /// Navigate to LoginView
+      Navigator.pushNamedAndRemoveUntil(
+          context, RoutesName.login, (route) => false);
+    } finally {
+      setLoading(false); // Stop loading
+    }
   }
 
   @override
