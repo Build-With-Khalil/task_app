@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/services/dio/dio_services.dart';
 import '../../utils/route/app_navigator.dart';
 import '../../utils/route/routes_name.dart';
+import '../chat/chat_controller.dart';
 
 class LoginProvider with ChangeNotifier {
   /// Variables for password visibility, login status, and loading state
@@ -19,6 +21,9 @@ class LoginProvider with ChangeNotifier {
   /// Tokens
   String? _accessToken;
   String? _refreshToken;
+
+  /// Id
+  int? _userId;
 
   /// Getter for login status and loading state
   bool get isAuthenticated => _isAuthenticated;
@@ -41,8 +46,7 @@ class LoginProvider with ChangeNotifier {
 
   /// Login function
   Future<void> login(BuildContext context) async {
-    const String loginUrl =
-        "https://stagingapi.calling-all-kids.com/api/user/auth/login";
+    const String loginUrl = "/user/auth/login";
 
     setLoading(true); // Start loading
 
@@ -59,11 +63,15 @@ class LoginProvider with ChangeNotifier {
         _accessToken = data['accessToken'];
         _refreshToken = data['refreshToken'];
 
+        /// Extract Id
+        _userId = data['user']['id'];
+
         /// Save tokens to SharedPreferences
         final preferences = await SharedPreferences.getInstance();
         await preferences.setString('accessToken', _accessToken!);
         await preferences.setString('refreshToken', _refreshToken!);
-        print(preferences.setString('accessToken', _accessToken!));
+        await preferences.setInt('id', _userId!);
+
         _isAuthenticated = true;
         notifyListeners();
 
@@ -76,7 +84,7 @@ class LoginProvider with ChangeNotifier {
 
         /// Show success message
         Fluttertoast.showToast(
-          msg: response.data['message'] ?? "Login successful",
+          msg: response.data['message'],
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.teal,
@@ -86,7 +94,7 @@ class LoginProvider with ChangeNotifier {
       } else {
         /// Show error message
         Fluttertoast.showToast(
-          msg: response.data['message'] ?? "Login failed",
+          msg: response.data['message'],
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.red,
@@ -97,7 +105,7 @@ class LoginProvider with ChangeNotifier {
     } catch (e) {
       /// Show error message
       Fluttertoast.showToast(
-        msg: "Login request failed: $e",
+        msg: "invalid email or password",
         toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: Colors.red,
@@ -119,6 +127,12 @@ class LoginProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void onLoginSuccess(BuildContext context, int? userId) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.setUserId(userId.toString());
+    userProvider.saveUserIdToPreferences(userId.toString());
+  }
+
   /// Logout function
   Future<void> logout(BuildContext context) async {
     setLoading(false); // Start loading
@@ -126,12 +140,13 @@ class LoginProvider with ChangeNotifier {
       /// Clear tokens and local data
       _accessToken = null;
       _refreshToken = null;
+      _userId = null;
       _isAuthenticated = false;
 
       final preferences = await SharedPreferences.getInstance();
       await preferences.remove('accessToken');
       await preferences.remove('refreshToken');
-
+      preferences.remove('id');
       notifyListeners();
 
       /// Navigate to LoginView

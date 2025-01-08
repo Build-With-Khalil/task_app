@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+import 'package:task_app/model/user_model.dart';
 import 'package:task_app/utils/constants/app_strings.dart';
 import 'package:task_app/view/login/components/sign_up_section.dart';
 
@@ -11,8 +12,11 @@ import '../../widget/custom_icon.dart';
 import '../../widget/custom_text_field.dart';
 
 class LoginView extends StatelessWidget {
-  const LoginView({super.key});
-
+  const LoginView({
+    super.key,
+    this.user,
+  });
+  final User? user;
   @override
   Widget build(BuildContext context) {
     /// Get the height and width of the screen
@@ -177,6 +181,7 @@ class LoginView extends StatelessWidget {
       onTap: () {
         if (formKey.currentState!.validate()) {
           loginProvider.login(context);
+          loginProvider.onLoginSuccess(context, user!.id as int?);
         }
       },
       child: Container(

@@ -16,6 +16,7 @@ class DioService {
     dio.interceptors.add(DioInterceptor());
   }
 
+  // POST Request
   Future<Response> postRequest(String url, Map<String, dynamic> data,
       {bool requiresToken = false}) async {
     try {
@@ -29,6 +30,23 @@ class DioService {
       return response;
     } catch (e) {
       throw Exception('POST request failed: $e');
+    }
+  }
+
+  // GET Request
+  Future<Response> getRequest(String url,
+      {Map<String, dynamic>? queryParams, bool requiresToken = false}) async {
+    try {
+      final response = await dio.get(
+        url,
+        queryParameters: queryParams,
+        options: Options(
+          headers: {"requiresToken": requiresToken},
+        ),
+      );
+      return response;
+    } catch (e) {
+      throw Exception('GET request failed: $e');
     }
   }
 }
