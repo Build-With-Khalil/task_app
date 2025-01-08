@@ -9,7 +9,7 @@ class AppPages {
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       RoutesName.splash: (context) => const SplashView(),
-      RoutesName.login: (context) => LoginView(),
+      RoutesName.login: (context) => const LoginView(),
       RoutesName.chat: (context) => const ChatView(),
     };
   }

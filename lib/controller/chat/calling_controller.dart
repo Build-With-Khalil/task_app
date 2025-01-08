@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class CallingProvider with ChangeNotifier {
+  ///
   final stt.SpeechToText _speech = stt.SpeechToText();
+
   bool isListening = false;
   String botResponse = "Hello, what is your name?";
   String userResponse = "";
@@ -50,7 +52,7 @@ class CallingProvider with ChangeNotifier {
     } else if (botResponse.contains("How can I help you?")) {
       botResponse = "Which friend? Name please.";
     } else if (botResponse.contains("Name please.")) {
-      botResponse = "Calling $response.";
+      botResponse = "Calling $response...";
     }
     notifyListeners();
   }

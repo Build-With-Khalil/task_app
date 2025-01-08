@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:task_app/controller/auth/login_controller.dart';
 
 import '../../controller/chat/calling_controller.dart';
-import '../../controller/chat/chat_controller.dart';
+import '../../utils/constants/colors.dart';
 import '../../utils/route/routes_name.dart';
 
 class ChatView extends StatelessWidget {
@@ -11,18 +11,11 @@ class ChatView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
     final loginProvider = Provider.of<LoginProvider>(context);
-
-    if (userProvider.user == null) {
-      // Load user ID from local storage
-      userProvider.loadUserFromPreferences();
-    }
-
-    final user = userProvider.user;
 
     return Scaffold(
       appBar: AppBar(
+        /// Back button to log out and navigate to the login screen
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
           onPressed: () {
@@ -34,14 +27,14 @@ class ChatView extends StatelessWidget {
             );
           },
         ),
-        title: Text(user!.id.toString()),
+        title: const Text("Calling Screen"),
       ),
       body: SafeArea(
         child: Consumer<CallingProvider>(
           builder: (context, provider, child) {
             return Column(
               children: [
-                /// Display Bot's Response
+                /// Bot's Response Section
                 Expanded(
                   flex: 2,
                   child: Container(
@@ -56,19 +49,20 @@ class ChatView extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
-                          Icons.mic,
-                          size: 60,
-                          color: Colors.teal,
+                        /// Bot icon
+                        Image.asset(
+                          "assets/images/robo_icon.png",
+                          height: 100,
                         ),
                         const SizedBox(height: 20),
+
+                        /// Display bot's response
                         Text(
-                          "Bot: ${provider.botResponse}",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
+                          provider.botResponse,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall!
+                              .apply(color: AppColors.secondaryColor),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -76,40 +70,41 @@ class ChatView extends StatelessWidget {
                   ),
                 ),
 
-                /// Display User's Response
+                /// User's Response Section
                 Expanded(
                   flex: 1,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     alignment: Alignment.center,
+
+                    /// Show placeholder text or user's response
                     child: provider.userResponse.isEmpty
-                        ? const Text(
+                        ? Text(
                             "Speak into the microphone to respond.",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                              fontStyle: FontStyle.italic,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium!
+                                .apply(color: AppColors.grey),
                             textAlign: TextAlign.center,
                           )
                         : Text(
                             "You: ${provider.userResponse}",
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black87,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium!
+                                .apply(color: AppColors.secondaryColor),
                             textAlign: TextAlign.center,
                           ),
                   ),
                 ),
 
-                /// Microphone Button
+                /// Microphone Interaction Section
                 Expanded(
                   flex: 1,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      /// Microphone button to toggle listening
                       GestureDetector(
                         onTap: provider.isListening
                             ? provider.stopListening
@@ -127,14 +122,16 @@ class ChatView extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
+
+                      /// Instruction text below the button
                       Text(
                         provider.isListening
                             ? "Listening... Tap to stop"
                             : "Tap to start listening",
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelMedium!
+                            .apply(color: AppColors.grey),
                       ),
                     ],
                   ),
